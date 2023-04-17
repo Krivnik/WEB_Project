@@ -1,5 +1,5 @@
-from flask import Flask
-from flask_login import LoginManager,login_required, login_user, logout_user, current_user
+from flask import Flask, render_template
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from data import db_session
 from data.users import User
 from data.recipes import Recipe
@@ -58,6 +58,11 @@ def login():
 def logout():
     logout_user()
     return redirect("/")
+
+
+@app.route('/')
+def main_page():
+    return render_template('main_page.html')
 
 
 def main():
