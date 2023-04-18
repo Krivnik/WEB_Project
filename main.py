@@ -1,9 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from data import db_session
 from data.users import User
 from data.recipes import Recipe
-from forms.user import RegisterForm, LoginForm
+from forms.user import RegisterForm, LoginForm, EditForm
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -53,6 +53,27 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
+@app.route('/edit', methods=['GET', 'POST'])
+@login_required
+def edit():
+    form = EditForm()
+    if request.method == "GET":
+        form.name.data = current_user.name
+        form.about.data = current_user.about
+    if form.validate_on_submit():
+
+        if not current_user.check_password(form.password.data):
+            return render_template('edit.html', title='Редактирование данных', form=form,
+                                   message="Пароли не совпадают")
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == current_user.email).first()
+        user.name = form.name.data
+        user.about = form.about.data
+        db_sess.commit()
+        return redirect('/')
+    return render_template('edit.html', title='Редактирование данных', form=form)
+
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -61,8 +82,13 @@ def logout():
 
 
 @app.route('/')
-def main_page():
-    return render_template('main_page.html')
+def index():
+    return render_template('main_page.html', title='Главная')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html', title='О нас')
 
 
 def main():
