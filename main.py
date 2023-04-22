@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_required, login_user, logout_user, c
 from data import db_session
 from data.users import User
 from data.recipes import Recipe
-from forms.user import RegisterForm, LoginForm, EditForm
+from forms.user import RegisterForm, LoginForm, EditForm, RecipeForm
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -18,7 +18,7 @@ def load_user(user_id):
 
 
 @app.route('/register', methods=['GET', 'POST'])
-def reqister():
+def register():
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
@@ -61,7 +61,6 @@ def edit():
         form.name.data = current_user.name
         form.about.data = current_user.about
     if form.validate_on_submit():
-
         if not current_user.check_password(form.password.data):
             return render_template('edit.html', title='Редактирование данных', form=form,
                                    message="Пароли не совпадают")
@@ -72,6 +71,31 @@ def edit():
         db_sess.commit()
         return redirect('/')
     return render_template('edit.html', title='Редактирование данных', form=form)
+
+
+@app.route('/add_recipe', methods=['GET', 'POST'])
+@login_required
+def add_recipe():
+    form = RecipeForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        rs = db_sess.query(Recipe).all()
+        n = '1' if not rs else str(int(rs[-1].id) + 1)
+        img_name = 'static/img/' + n + '.' + request.files['image'].filename.rsplit('.')[-1]
+        request.files['image'].save(img_name)
+        recipe = Recipe(
+            title=form.title.data,
+            # ingredients=form.ingredients.data,
+            cooking_time=form.cooking_time.data.isoformat(timespec='minutes'),
+            content=form.content.data,
+            image=img_name,
+            is_private=form.is_private.data)
+        current_user.recipes.append(recipe)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        # Я знаю об этой ошибке, но пока не смог ее пофиксить
+        return redirect('/')
+    return render_template('add_recipe.html', title='Добавление рецепта', form=form)
 
 
 @app.route('/logout')

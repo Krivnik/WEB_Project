@@ -1,5 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, TextAreaField, SubmitField, EmailField, BooleanField
+from wtforms import PasswordField, StringField, \
+    TextAreaField, SubmitField, \
+    EmailField, BooleanField, \
+    TimeField, FileField
 from wtforms.validators import DataRequired
 
 
@@ -24,3 +27,14 @@ class EditForm(FlaskForm):
     about = TextAreaField("Немного о себе")
     password = PasswordField('Подтвердите пароль', validators=[DataRequired()])
     submit = SubmitField('Подтвердить')
+
+
+class RecipeForm(FlaskForm):
+    title = StringField('Название', validators=[DataRequired()])
+    ingredients = [BooleanField(text) for text in
+                   ["Список с ингредиентами"]]
+    cooking_time = TimeField('Время приготовления', validators=[DataRequired()])
+    content = TextAreaField("Рецепт", validators=[DataRequired()])
+    is_private = BooleanField('Личное')
+    image = FileField('Изображение', validators=[DataRequired()])
+    submit = SubmitField('Опубликовать')

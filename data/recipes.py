@@ -11,10 +11,9 @@ class Recipe(SqlAlchemyBase):
     title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     content = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     ingredients = sqlalchemy.Column(sqlalchemy.String, nullable=True)  # потом объясню реализацию
-    cooking_time = sqlalchemy.Column(sqlalchemy.String, nullable=True)  # пока пусть строкой будет
-    image = sqlalchemy.Column(sqlalchemy.String, nullable=True, default='default.jpg')
-    # неполное название загруженного в static/img файла, по умолчанию белая картинка 1х1
+    cooking_time = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    image = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     created_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.now)
     is_private = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
-    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     user = orm.relationship('User')
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
