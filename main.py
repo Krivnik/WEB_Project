@@ -73,7 +73,7 @@ def edit():
     return render_template('edit.html', title='Редактирование данных', form=form)
 
 
-@app.route('/add_recipe', methods=['GET', 'POST'])
+@app.route('/recipes', methods=['GET', 'POST'])
 @login_required
 def add_recipe():
     form = RecipeForm()
@@ -95,7 +95,54 @@ def add_recipe():
         db_sess.commit()
         # Я знаю об этой ошибке, но пока не смог ее пофиксить
         return redirect('/')
-    return render_template('add_recipe.html', title='Добавление рецепта', form=form)
+    return render_template('recipe.html', title='Добавление рецепта', form=form)
+
+
+@app.route('/recipes/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_recipe(id):
+    form = RecipeForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        recipe = db_sess.query(Recipe).filter(Recipe.id == id, Recipe.user == current_user).first()
+        if recipe:
+            form.title.data = recipe.title
+            # form.ingredients.data = recipe.ingredients
+            form.cooking_time.data = datetime.time(recipe.cooking_time.split(':'))
+            form.content.data = recipe.content
+            form.is_private.data = recipe.is_private
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        recipe = db_sess.query(Recipe).filter(Recipe.id == id, Recipe.user == current_user).first()
+        img_name = recipe.image.rsplit('.')[0] + '.' \
+                   + request.files['image'].filename.rsplit('.')[-1]
+        request.files['image'].save(img_name)
+        if recipe:
+            recipe.title = form.title.data
+            # recipe.ingredients = form.ingredients.data
+            recipe.cooking_time = form.cooking_time.data.isoformat(timespec='minutes')
+            recipe.content = form.content.data
+            recipe.is_private = form.is_private.data
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('recipe.html', title='Редактирование рецепта', form=form)
+
+
+@app.route('/recipes_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def recipe_delete(id):
+    db_sess = db_session.create_session()
+    recipe = db_sess.query(Recipe).filter(Recipe.id == id, Recipe.user == current_user).first()
+    if recipe:
+        db_sess.delete(recipe)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/')
 
 
 @app.route('/logout')
