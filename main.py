@@ -4,6 +4,7 @@ from data import db_session
 from data.users import User
 from data.recipes import Recipe
 from forms.user import RegisterForm, LoginForm, EditForm
+from forms.recipe import CreateForm
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -89,6 +90,12 @@ def index():
 @app.route('/about')
 def about():
     return render_template('about.html', title='О нас')
+
+
+@app.route('/create')
+def create():
+    form = CreateForm()
+    return render_template('create.html', title='Создание рецепта', form=form)
 
 
 def main():
